@@ -23,8 +23,8 @@ public class AuthenticationService implements IAuthenticationService {
 
     public AuthUser register(AuthUserDTO userDTO) {
         AuthUser user = new AuthUser(userDTO);
-        System.out.println(user);
         String token = tokenUtil.createToken(user.getUserId());
+        user.setResetToken(token);
         authUserRepository.save(user);
         emailSenderService.sendEmail(user.getEmail(),"Welcome to MyHI App", "Hello "
                 + user.getFirstName()
@@ -35,15 +35,16 @@ public class AuthenticationService implements IAuthenticationService {
                 + user.getFirstName() + "\n Last Name:  "
                 + user.getLastName() + "\n Email:  "
                 + user.getEmail() + "\n Address:  "
-                + "\n Token:  " + token);
+                + "\n Token:  " + user.getResetToken());
         return user;
     }
 
 
     public String login(LoginDTO loginDTO) throws UserException {
         Optional<AuthUser> user= Optional.ofNullable(authUserRepository.findByEmail(loginDTO.getEmail()));
+        String token = tokenUtil.createToken(user.get().getUserId());
         if (user.isPresent() && user.get().getPassword().equals(loginDTO.getPassword())) {
-            emailSenderService.sendEmail(user.get().getEmail(),"Logged in Successfully!", "Hii...."+user.get().getFirstName()+"\n\n You have successfully logged in into Greeting App!");
+            emailSenderService.sendEmail(user.get().getEmail(),"Logged in Successfully!", "Hii...."+user.get().getFirstName()+"\n\n You have successfully logged in into Greeting App!\n Token: "+token);
             return "Congratulations!! You have logged in successfully!";
         } else {
             throw new UserException("Sorry! Email or Password is incorrect!");
