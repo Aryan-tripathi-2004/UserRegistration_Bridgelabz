@@ -7,7 +7,7 @@ import com.example.UserRegistration.DTO.ResponseDTO;
 import com.example.UserRegistration.Exception.UserException;
 import com.example.UserRegistration.Model.AuthUser;
 import com.example.UserRegistration.Service.EmailSenderService;
-import com.example.UserRegistration.Service.AuthenticationService;
+import com.example.UserRegistration.Service.IAuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthUserController {
 
     @Autowired
-    private AuthenticationService authenticationService;
+    private IAuthenticationService authenticationService;
 
     @Autowired
     private EmailSenderService emailSenderService;

@@ -7,6 +7,7 @@ import com.example.UserRegistration.Model.AuthUser;
 import com.example.UserRegistration.Utils.JwtToken;
 import com.example.UserRegistration.repository.AuthUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -20,10 +21,16 @@ public class AuthenticationService implements IAuthenticationService {
     private JwtToken tokenUtil;
     @Autowired
     private EmailSenderService emailSenderService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
 
     public AuthUser register(AuthUserDTO userDTO) {
         AuthUser user = new AuthUser(userDTO);
+        String encodedPassword = passwordEncoder.encode(userDTO.getPassword());
         String token = tokenUtil.createToken(user.getUserId());
+
+        user.setPassword(encodedPassword);
         user.setResetToken(token);
         authUserRepository.save(user);
         emailSenderService.sendEmail(user.getEmail(),"Welcome to MyHI App", "Hello "
@@ -41,11 +48,15 @@ public class AuthenticationService implements IAuthenticationService {
 
 
     public String login(LoginDTO loginDTO) throws UserException {
-        Optional<AuthUser> user= Optional.ofNullable(authUserRepository.findByEmail(loginDTO.getEmail()));
+        Optional<AuthUser> user = Optional.ofNullable(authUserRepository.findByEmail(loginDTO.getEmail()));
         String token = tokenUtil.createToken(user.get().getUserId());
-        if (user.isPresent() && user.get().getPassword().equals(loginDTO.getPassword())) {
+        if (user.isPresent() && passwordEncoder.matches(loginDTO.getPassword(), user.get().getPassword())) {
             emailSenderService.sendEmail(user.get().getEmail(),"Logged in Successfully!", "Hii...."+user.get().getFirstName()+"\n\n You have successfully logged in into Greeting App!\n Token: "+token);
             return "Congratulations!! You have logged in successfully!";
+        } else if (!user.isPresent()) {
+            throw new UserException("Sorry! User not Found!");
+        } else if (!passwordEncoder.matches(loginDTO.getPassword(), user.get().getPassword())) {
+            throw new UserException("Sorry! Password is incorrect!");
         } else {
             throw new UserException("Sorry! Email or Password is incorrect!");
         }

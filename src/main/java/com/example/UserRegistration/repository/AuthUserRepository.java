@@ -1,6 +1,5 @@
 package com.example.UserRegistration.repository;
 
-import com.example.UserRegistration.DTO.AuthUserDTO;
 import com.example.UserRegistration.Model.AuthUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
